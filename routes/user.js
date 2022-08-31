@@ -1,15 +1,26 @@
-const router = require('express').Router();
 const User = require('../models/User');
+const { verifyTokenAndAuthorization } = require('./verifyToken');
 
-router.get('/users', (req,res) => {
-  res.status(200).send('Succeso ao entrar no endpoint users');
+const router = require('express').Router();
+
+
+router.put('/:id', verifyTokenAndAuthorization, (req, res) => {
+  if(req.body.password) {
+    req.body.password = CryptoJS.AES.encrypt(
+      req.body.password,
+      process.env.PASS_SEC
+    ).toString();
+  }
+
+  try {
+    const updateUser = User.findByIdAndUpdate(req.params.id, {
+      $set: req.body
+    }, { new: true });
+
+    res.status(200).json(updateUser);
+  } catch(err) {
+    res.status(500).json(err);
+  }
 });
-
-router.post('/users', (req, res) => {
-  const { username, email, password } = req.body;
-  const role = '';
-
-  res.status(201).send(`Usuário: ${username || ''}, criado com sucesso`);
-})
 
 module.exports = router;
